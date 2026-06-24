@@ -1,23 +1,435 @@
-<html>
-  <body>
-    <head>
-      <title>TESTING</title>
-    </head>
-    <!--NAVBAR-->
-    <div class="container-navbar">
-      <ul class="ul-navbar">
-        
-      </ul>
-    </div>
-    <!--SELESAI-->
-    
-    <!--CONTENT-->
-    
-    <!--SELESAI-->
-    
-    <!--FOOTER-->
-    
-    <!--SELESAI-->
-    
-  </body>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+
+<title>VINTHEX SELEKSI</title>
+
+<style>
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap');
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+overflow:hidden;
+background:#0f172a;
+}
+
+body::before{
+content:"";
+position:absolute;
+width:150%;
+height:150%;
+background:
+radial-gradient(circle,#ff4da6 0%,transparent 30%),
+radial-gradient(circle,#8b5cf6 0%,transparent 30%),
+radial-gradient(circle,#00e5ff 0%,transparent 30%);
+animation:moveBg 15s linear infinite;
+filter:blur(120px);
+}
+
+@keyframes moveBg{
+0%{transform:translate(-10%,-10%)}
+50%{transform:translate(10%,10%)}
+100%{transform:translate(-10%,-10%)}
+}
+
+.glass{
+background:rgba(255,255,255,.08);
+backdrop-filter:blur(30px);
+border:1px solid rgba(255,255,255,.15);
+box-shadow:
+0 8px 32px rgba(0,0,0,.3),
+0 0 30px rgba(255,0,128,.15);
+}
+
+.card{
+position:relative;
+z-index:2;
+width:450px;
+padding:35px;
+border-radius:30px;
+color:white;
+}
+
+.logo{
+font-size:55px;
+text-align:center;
+margin-bottom:10px;
+}
+
+h1{
+text-align:center;
+font-size:34px;
+font-weight:800;
+background:linear-gradient(90deg,#ff4da6,#ffffff);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.by{
+text-align:center;
+opacity:.7;
+margin-bottom:25px;
+}
+
+input,textarea{
+width:100%;
+padding:14px;
+margin-top:10px;
+border:none;
+outline:none;
+border-radius:15px;
+background:rgba(255,255,255,.1);
+color:white;
+}
+
+button{
+width:100%;
+padding:14px;
+margin-top:10px;
+border:none;
+border-radius:15px;
+font-weight:700;
+cursor:pointer;
+background:linear-gradient(45deg,#ff4da6,#ff77c8);
+color:white;
+transition:.3s;
+}
+
+button:hover{
+transform:translateY(-3px);
+}
+
+.hidden{
+display:none;
+}
+
+.popup{
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+padding:40px;
+border-radius:25px;
+font-size:30px;
+font-weight:bold;
+color:white;
+z-index:999;
+}
+
+.userBox{
+padding:15px;
+margin-top:15px;
+border-radius:15px;
+background:rgba(255,255,255,.08);
+}
+
+</style>
+</head>
+<body>
+
+<div id="popup" class="glass popup hidden"></div>
+
+<!-- LOGIN -->
+
+<div class="glass card" id="loginPage">
+
+<div class="logo">👑</div>
+
+<h1>VINTHEX SELEKSI</h1>
+
+<div class="by">BY OWN RYUUBREE</div>
+
+<input id="loginName" placeholder="Nama">
+
+<input id="loginPass" type="password" placeholder="Password">
+
+<button onclick="login()">LOGIN</button>
+
+<button onclick="showRegister()">DAFTAR</button>
+
+<hr style="margin:15px 0">
+
+<input id="adminPass" type="password" placeholder="Password Admin">
+
+<button onclick="adminLogin()">LOGIN ADMIN</button>
+
+</div>
+
+<!-- REGISTER -->
+
+<div class="glass card hidden" id="registerPage">
+
+<h1>DAFTAR AKUN</h1>
+
+<input id="regName" placeholder="Nama">
+
+<input id="regPass" type="password" placeholder="Password">
+
+<button onclick="register()">DAFTAR</button>
+
+<button onclick="showLogin()">KEMBALI</button>
+
+</div>
+
+<!-- USER -->
+
+<div class="glass card hidden" id="userPage">
+
+<h1>SELEKSI VINTHEX</h1>
+
+<textarea
+id="jawaban"
+placeholder="Mengapa kamu layak menjadi petinggi?"
+style="height:180px"
+></textarea>
+
+<button onclick="kirimSeleksi()">
+KIRIM SELEKSI
+</button>
+
+<button onclick="logout()">
+LOGOUT
+</button>
+
+</div>
+
+<!-- ADMIN -->
+
+<div class="glass card hidden" id="adminPage">
+
+<h1>DASHBOARD ADMIN</h1>
+
+<div id="listUser"></div>
+
+<button onclick="logout()">
+LOGOUT
+</button>
+
+</div>
+
+<script>
+
+let currentUser=null;
+
+function showRegister(){
+loginPage.classList.add("hidden");
+registerPage.classList.remove("hidden");
+}
+
+function showLogin(){
+registerPage.classList.add("hidden");
+loginPage.classList.remove("hidden");
+}
+
+function register(){
+
+let nama=regName.value.trim();
+let pass=regPass.value.trim();
+
+if(!nama || !pass){
+alert("Nama dan Password wajib diisi");
+return;
+}
+
+let users=
+JSON.parse(localStorage.getItem("users"))||[];
+
+if(users.some(u=>u.nama===nama)){
+alert("Nama sudah digunakan");
+return;
+}
+
+users.push({
+nama,
+pass,
+jawaban:"",
+status:"MENUNGGU",
+sudahSeleksi:false,
+blocked:false
+});
+
+localStorage.setItem(
+"users",
+JSON.stringify(users)
+);
+
+alert("Pendaftaran berhasil");
+showLogin();
+}
+
+function login(){
+
+let users=
+JSON.parse(localStorage.getItem("users"))||[];
+
+let user=
+users.find(
+u=>u.nama===loginName.value &&
+u.pass===loginPass.value
+);
+
+if(!user){
+alert("Akun tidak ditemukan");
+return;
+}
+
+if(user.blocked){
+alert("Akun diblokir permanen");
+return;
+}
+
+currentUser=user.nama;
+
+loginPage.classList.add("hidden");
+userPage.classList.remove("hidden");
+
+cekStatus();
+}
+
+function kirimSeleksi(){
+
+let users=
+JSON.parse(localStorage.getItem("users"))||[];
+
+let user=
+users.find(u=>u.nama===currentUser);
+
+if(user.sudahSeleksi){
+alert("Seleksi hanya dapat dilakukan 1 kali");
+return;
+}
+
+user.jawaban=jawaban.value;
+user.sudahSeleksi=true;
+
+localStorage.setItem(
+"users",
+JSON.stringify(users)
+);
+
+alert("Jawaban berhasil dikirim");
+}
+
+function adminLogin(){
+
+if(adminPass.value!=="admin123"){
+alert("Password admin salah");
+return;
+}
+
+loginPage.classList.add("hidden");
+adminPage.classList.remove("hidden");
+
+loadAdmin();
+}
+
+function loadAdmin(){
+
+let users=
+JSON.parse(localStorage.getItem("users"))||[];
+
+let html="";
+
+users.forEach((u,i)=>{
+
+html+=`
+<div class="userBox">
+
+<h3>${u.nama}</h3>
+
+<p>${u.jawaban||"Belum mengirim jawaban"}</p>
+
+<br>
+
+<b>Status: ${u.status}</b>
+
+<button onclick="terima(${i})">
+TERIMA
+</button>
+
+<button onclick="tolak(${i})">
+TOLAK
+</button>
+
+</div>
+`;
+});
+
+listUser.innerHTML=html;
+}
+
+function terima(i){
+
+let users=
+JSON.parse(localStorage.getItem("users"));
+
+users[i].status="LOLOS";
+
+localStorage.setItem(
+"users",
+JSON.stringify(users)
+);
+
+loadAdmin();
+}
+
+function tolak(i){
+
+let users=
+JSON.parse(localStorage.getItem("users"));
+
+users[i].status="DITOLAK";
+users[i].blocked=true;
+
+localStorage.setItem(
+"users",
+JSON.stringify(users)
+);
+
+loadAdmin();
+}
+
+function cekStatus(){
+
+let users=
+JSON.parse(localStorage.getItem("users"))||[];
+
+let user=
+users.find(u=>u.nama===currentUser);
+
+if(user.status==="LOLOS"){
+
+popup.innerHTML=
+"🎉 SELAMAT KAMU BERHASIL";
+
+popup.classList.remove("hidden");
+}
+
+if(user.status==="DITOLAK"){
+
+popup.innerHTML=
+"❌ MAAF KAMU DITOLAK";
+
+popup.classList.remove("hidden");
+}
+}
+
+function logout(){
+location.reload();
+}
+
+</script>
+
+</body>
 </html>
